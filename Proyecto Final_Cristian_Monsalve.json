@@ -1,0 +1,579 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        -272
+      ],
+      "id": "8da38c82-3a51-4347-aeef-c1e76df2064f",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "263bdd1e-b3c7-4bbd-a9a6-534a867de673",
+              "name": "contenido",
+              "value": "DETALLE COMPLETO DEL SÍLABO Y RUTA DE APRENDIZAJE - Herramientas Tecnológicas Iniciales (GAA2200)\n\nESTRUCTURA GENERAL Y PONDERACIONES:\n- La asignatura consta de 3 experiencias de aprendizaje (Semanas 1 a 8).\n- Las experiencias suman el 60% de la nota final de la asignatura.\n- La Evaluación Final Transversal (EFT) se rinde en la Semana 9 y vale el 40% de la nota final.\n\nDETALLE POR SEMANAS:\n\n| SEMANA | FECHA | EXPERIENCIA | ACTIVIDAD / CONTENIDO | TIPO DE EVALUACIÓN | PONDERACIÓN |\n|---|---|---|---|---|---|\n| Semana 1 | Lunes 16 de marzo | Exp. 1: Gestión y optimización de bases de datos | Ordenando y organizando datos. Uso de filtros, minigráficos y formato condicional. | Formativa 1 | 0% |\n| Semana 2 | Lunes 23 de marzo | Exp. 1: Gestión y optimización de bases de datos | Practicando el uso de referencias externas y fórmulas (ABS, ENTERO, REDONDEAR). | Sumativa 1 | 25% de las Experiencias |\n| Semana 3 | Lunes 30 de marzo | Exp. 2: Aplicando funciones de Excel | Aplicando funciones estadísticas (CONTAR.SI, PROMEDIO.SI, SUMAR.SI). | Formativa 2 | 0% |\n| Semana 4 | Lunes 6 de abril | Exp. 2: Aplicando funciones de Excel | Analizando datos con funciones de búsqueda (BUSCARV, BUSCARH, BUSCARX). | Formativa 3 | 0% |\n| Semana 5 | Lunes 13 de abril | Exp. 2: Aplicando funciones de Excel | Construyendo decisiones inteligentes con funciones lógicas (SI, Y, O, SI.CONJUNTO). | Formativa 4 | 0% |\n| Semana 6 | Lunes 20 de abril | Exp. 2: Aplicando funciones de Excel | Integrando funciones anidadas para informes. | Sumativa 2 | 40% de las Experiencias |\n| Semana 7 | Lunes 27 de abril | Exp. 3: Presentando informes y optimizando | Creando informes interactivos con Tablas Dinámicas, segmentación y gráficos dinámicos. | Formativa 5 | 0% |\n| Semana 8 | Lunes 4 de mayo | Exp. 3: Presentando informes y optimizando | Construyendo reportes precisos explorando las opciones de Solver para análisis de datos. | Sumativa 3 | 35% de las Experiencias |\n| Semana 9 | Domingo 10 de mayo | Evaluación Final Transversal (EFT) | Ejecución práctica presencial que integra todos los contenidos del semestre. | Evaluación Final | 40% de la nota final de la asignatura |",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -224,
+        -272
+      ],
+      "id": "5b963789-0555-4ca3-915f-00fe4f208926",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Se Obtiene el texto que viene del Edit Fields (campo \"contenido\")\nconst texto = $input.first().json.contenido;\n\n// Se crea la estructura que espera el vector store\nreturn [{\n  json: {\n    pageContent: texto,\n    metadata: {\n      fuente: \"sílabo_completo\"\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        -272
+      ],
+      "id": "ab4bacad-2956-4151-bee5-e340c72a60cf",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "fuente",
+                "value": "silabo"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        -32
+      ],
+      "id": "09837ac1-7b54-4159-8cfc-66fb4f980fda",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -256,
+        304
+      ],
+      "id": "6697bba8-a0d5-478e-a228-13eabee09670",
+      "name": "Telegram Trigger",
+      "webhookId": "aece6709-f702-4f29-8a98-cb22c2bb9994",
+      "credentials": {
+        "telegramApi": {
+          "id": "7AsePgtDqFf1yviy",
+          "name": "Bot_Pruebas"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Se toma el mensaje del trigger\nconst item = $input.first().json;\nconst mensaje = item.message?.text?.trim() || '';\nconst chatId = item.message?.chat?.id;\nconst usuarioId = item.message?.from?.id;\nconst nombre = item.message?.from?.first_name || 'Usuario';\n\n// Si el mensaje está vacío, se prepara una respuesta rápida\nif (mensaje === '') {\n  return [{\n    json: {\n      vacio: true,\n      chatId: chatId,\n      respuesta: 'Por favor, escribe algo 😊'\n    }\n  }];\n}\n\n// Si hay mensaje, se devuelven los datos limpios\nreturn [{\n  json: {\n    vacio: false,\n    chatId: chatId,\n    usuarioId: usuarioId,\n    nombre: nombre,\n    textoLimpio: mensaje\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        304
+      ],
+      "id": "b44bb307-33e9-433e-b7ab-e8fd8727f936",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e4cc6358-e90a-4a83-8d7c-b13723dba7e9",
+              "leftValue": "={{ $json.vacio }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        160,
+        304
+      ],
+      "id": "2bc04216-a94c-4ec5-9433-79ebe5a79476",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "={{ $json.respuesta }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        176
+      ],
+      "id": "be7c52fc-a164-4b9d-ad72-126c5d4310a4",
+      "name": "Send a text message",
+      "webhookId": "6ca838cb-2d4e-4a5f-b84f-27398d22894d",
+      "credentials": {
+        "telegramApi": {
+          "id": "7AsePgtDqFf1yviy",
+          "name": "Bot_Pruebas"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.textoLimpio }}",
+        "options": {
+          "systemMessage": "Eres un asistente académico experto en la asignatura Herramientas Tecnológicas Iniciales (GAA2200). Tu objetivo es ayudar a los alumnos con dudas logísticas, fechas y contenidos del curso de manera amable y precisa.\n\nINSTRUCCIONES ESTRICTAS:\n\nUSO DE HERRAMIENTA: SIEMPRE que el usuario pregunte algo relacionado con el curso, DEBES usar la herramienta \"buscador\" para ir a los documentos oficiales. Nunca respondas de memoria.\n\nSINÓNIMOS Y JERGA: Los alumnos utilizan distintos términos para referirse a las evaluaciones.\n\nSi el alumno menciona la palabra \"evaluación\", \"prueba\", \"examen\" o \"certamen\" (ej. \"evaluación 2\"), asume inmediatamente que se refiere a una \"Sumativa\" (ej. \"Sumativa 2\") y utiliza esa palabra clave exacta al usar el buscador.\n\nDEDUCCIÓN CRONOLÓGICA: Si un alumno pregunta por la \"Sumativa 2\" o \"Experiencia 2\", lee todo el texto recuperado y deduce cuál es basándote en el orden cronológico de las semanas.\n\nANÁLISIS Y FORMATO: Revisa el texto que te devuelve la herramienta. Redacta un mensaje claro usando viñetas para los contenidos y negritas para fechas o ponderaciones.\n\nLÍMITE DE CONOCIMIENTO: Si la información no está en el texto recuperado, di amablemente: \"No encontré información específica sobre eso en el sílabo oficial. Te recomiendo consultar el material de la clase o preguntar directamente al profesor.\"\n\nPROHIBICIÓN: Bajo ninguna circunstancia inventes fechas, reglas o contenidos."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        336
+      ],
+      "id": "6a92386c-9bdd-4b27-85e1-2d2986df4683",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.usuarioId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        608
+      ],
+      "id": "8a1bd8bd-caa8-459a-bca6-e7adb86a1bdb",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        112,
+        624
+      ],
+      "id": "e1ac881c-cd69-4138-b18e-8fe34f3d48ff",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "xoTFvvrrhtVMImFW",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Busca en el sílabo del curso GAA2200 para encontrar información sobre semanas, fechas, evaluaciones, contenidos y ponderaciones. Úsala siempre que el usuario pregunte sobre el curso.",
+        "topK": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        576
+      ],
+      "id": "3e78068c-b04d-41b0-b9e0-282a6262c779",
+      "name": "buscador"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        272,
+        944
+      ],
+      "id": "03309bcf-da04-40fe-a95e-dfb3c7bf6ba0",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "WmfqxImM8JKrPmWW",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        816,
+        752
+      ],
+      "id": "4076e6b9-edff-44ec-b625-4212fd111a6b",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "xoTFvvrrhtVMImFW",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        400
+      ],
+      "id": "04cecc2d-82c3-4590-baa7-7d116c6eebc2",
+      "name": "Send a text message1",
+      "webhookId": "cab5549a-2b55-4e6f-bdc2-d6c17ae63af7",
+      "credentials": {
+        "telegramApi": {
+          "id": "7AsePgtDqFf1yviy",
+          "name": "Bot_Pruebas"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtenemer la respuesta del AI Agent (viene en $json.output)\nconst respuesta = $input.first().json.output;\n\n// Obtener el chatId directamente del nodo Telegram Trigger (siempre está disponible)\nconst chatId = $('Telegram Trigger').first().json.message.chat.id;\n\n// Devolver los campos que necesita Telegram\nreturn [{\n  json: {\n    chatId: chatId,\n    text: respuesta\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        448
+      ],
+      "id": "6d881817-8d12-4771-91ad-ceeca5e03615",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "asistente-academico-v2",
+          "mode": "list",
+          "cachedResultName": "asistente-academico-v2"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        -272
+      ],
+      "id": "7b7df407-e7eb-429d-b0f5-5daed6a8b52c",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "xQVJAHkCc3pUOkyW",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        -48
+      ],
+      "id": "a3723c02-31ae-4405-8179-3e52baac2349",
+      "name": "Embeddings Google Gemini2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "WmfqxImM8JKrPmWW",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "asistente-academico-v2",
+          "mode": "list",
+          "cachedResultName": "asistente-academico-v2"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        800
+      ],
+      "id": "b1298869-41d2-4dea-a564-ce80a788749e",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "xQVJAHkCc3pUOkyW",
+          "name": "PineconeApi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscador": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "buscador",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "buscador",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "98862121-85c1-4c42-ade0-fa1c5c468174",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "61e9cf9db9de7274b20ecc7029983751b318dd6ba6d4b8b23a6b123d0d039cf9"
+  },
+  "id": "p3CFS1ZeAIAwy5ou",
+  "tags": []
+}
